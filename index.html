@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>活动+ - 发现附近的兴趣社群</title>
+  <meta name="description" content="活动+ - 发现您附近的兴趣社群，结识志同道合的朋友">
+  
+  <!-- 预加载关键资源 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" as="style">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" as="style">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+	tailwind.config = {
+	  darkMode: "class",
+	  theme: {
+		extend: {
+		  colors: {
+			primary: "#0d7ff2",
+			"primary-light": "#e6f2ff",
+			"background-light": "#f5f7f8",
+			"background-dark": "#101922",
+			"card-light": "#ffffff",
+			"card-dark": "#1e293b",
+		  },
+		  fontFamily: {
+			display: ["Plus Jakarta Sans"],
+		  },
+		  borderRadius: {
+			DEFAULT: "0.75rem",
+			lg: "1rem",
+			xl: "1.5rem",
+			full: "9999px"
+		  },
+		  boxShadow: {
+			'card': '0 2px 10px 0 rgba(0, 0, 0, 0.05)',
+			'card-dark': '0 2px 10px 0 rgba(0, 0, 0, 0.2)',
+		  }
+		},
+	  },
+	};
+  </script>
+  <style>
+	.material-symbols-outlined {
+	  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+	}
+	
+	/* 自定义滚动条 */
+	::-webkit-scrollbar {
+	  width: 4px;
+	}
+	
+	::-webkit-scrollbar-track {
+	  background: transparent;
+	}
+	
+	::-webkit-scrollbar-thumb {
+	  background: #cbd5e1;
+	  border-radius: 2px;
+	}
+	
+	.dark ::-webkit-scrollbar-thumb {
+	  background: #475569;
+	}
+	
+	/* 动画效果 */
+	@keyframes fadeIn {
+	  from { opacity: 0; transform: translateY(10px); }
+	  to { opacity: 1; transform: translateY(0); }
+	}
+	
+	.fade-in {
+	  animation: fadeIn 0.3s ease-out forwards;
+	}
+	
+	/* 卡片悬停效果 */
+	.activity-card {
+	  transition: all 0.3s ease;
+	}
+	
+	.activity-card:hover {
+	  transform: translateY(-2px);
+	}
+	
+	/* 小组标识样式 - 调整大小 */
+	.group-badge {
+	  position: absolute;
+	  bottom: -3px;
+	  right: -3px;
+	  background: linear-gradient(135deg, #f59e0b, #d97706);
+	  color: white;
+	  border-radius: 8px;
+	  padding: 2px 6px;
+	  font-size: 10px;
+	  font-weight: 700;
+	  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+	  z-index: 10;
+	  line-height: 1.2;
+	}
+	
+	/* 响应式调整 */
+	@media (max-width: 360px) {
+	  .activity-card {
+		padding: 0.75rem;
+	  }
+	  
+	  .activity-card .text-sm {
+		font-size: 0.75rem;
+	  }
+	}
+	
+	/* 确保足够的颜色对比度 */
+	.text-slate-500 {
+	  color: #64748b;
+	}
+	
+	.dark .text-slate-400 {
+	  color: #94a3b8;
+	}
+	
+	/* 深色模式下的焦点样式 */
+	.focus\:ring-primary\/20:focus {
+	  --tw-ring-color: rgb(13 127 242 / 0.2);
+	}
+	
+	.dark .focus\:ring-primary\/20:focus {
+	  --tw-ring-color: rgb(13 127 242 / 0.3);
+	}
+	
+	/* 骨架屏动画 */
+	@keyframes pulse-skeleton {
+	  0% { opacity: 1; }
+	  50% { opacity: 0.5; }
+	  100% { opacity: 1; }
+	}
+	
+	.skeleton {
+	  animation: pulse-skeleton 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+	  background-color: #e2e8f0;
+	  border-radius: 0.5rem;
+	}
+	
+	.dark .skeleton {
+	  background-color: #334155;
+	}
+	
+	/* 下拉刷新样式 */
+	.pull-to-refresh {
+	  transition: transform 0.3s;
+	}
+	
+	.refreshing {
+	  animation: refreshing 1s ease-in-out;
+	}
+	
+	@keyframes refreshing {
+	  0% { transform: translateY(0); }
+	  50% { transform: translateY(10px); }
+	  100% { transform: translateY(0); }
+	}
+	
+	/* 搜索框动画 */
+	.search-expand {
+	  transition: all 0.3s ease;
+	}
+	
+	.search-expanded {
+	  width: 100%;
+	  max-width: 400px;
+	}
+	
+	/* 通知小红点样式 - 调整大小 */
+	.notification-badge {
+	  position: absolute;
+	  top: 0px;
+	  right: 0px;
+	  width: 12px;
+	  height: 12px;
+	  background-color: #ef4444;
+	  border-radius: 50%;
+	  border: 1.5px solid;
+	  border-color: #f5f7f8;
+	  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+	}
+	
+	.dark .notification-badge {
+	  border-color: #101922;
+	}
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-200">
+  <div class="flex h-screen flex-col">
+	<!-- 顶部导航栏 -->
+	<header class="sticky top-0 z-10 border-b border-slate-200 bg-background-light/90 px-4 py-3 backdrop-blur-sm dark:border-slate-800 dark:bg-background-dark/90">
+	  <div class="flex items-center justify-between">
+		<div class="flex items-center gap-4">
+		  <div class="flex items-center gap-2">
+			<div class="h-8 w-8 rounded-lg bg-primary flex items-center justify-center overflow-hidden">
+			  <img src="https://x1.sicx.top/n/68db9c6111198.jpg" alt="活动+ Logo" class="h-full w-full object-cover" loading="eager">
+			</div>
+			<h1 class="text-lg font-bold text-slate-900 dark:text-white">活动+</h1>
+		  </div>
+		</div>
+		<div class="flex-1 text-center max-w-[200px]">
+		  <button class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-700 transition-all hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 max-w-full" 
+				  aria-label="当前位置，点击可更改" 
+				  id="location-button"
+				  aria-haspopup="true"
+				  aria-expanded="false">
+			<span class="material-symbols-outlined !text-base">location_on</span>
+			<span class="truncate" id="current-location">北京市海淀区中关村大街1号</span>
+			<span class="material-symbols-outlined !text-base">expand_more</span>
+		  </button>
+		</div>
+		<div class="flex items-center gap-2">
+		  <!-- 搜索按钮 -->
+		  <button class="flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition-all hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700 search-expand" 
+				  aria-label="搜索活动" 
+				  id="search-button">
+			<svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+			  <path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" stroke-linecap="round" stroke-linejoin="round"></path>
+			</svg>
+		  </button>
+		  
+		  <!-- 通知按钮 - 调整小红点大小 -->
+		  <button class="relative flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition-all hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700" 
+				  aria-label="通知" 
+				  id="notification-button">
+			<span class="material-symbols-outlined">notifications</span>
+			<!-- 调整小红点大小 -->
+			<span class="notification-badge"></span>
+		  </button>
+		</div>
+	  </div>
+	  
+	  <!-- 搜索框 -->
+	  <div class="mt-3 hidden" id="search-container">
+		<div class="relative">
+		  <input type="text" 
+				 placeholder="搜索社群名称或关键词..." 
+				 class="w-full rounded-full bg-slate-100 px-4 py-3 pl-12 text-slate-700 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-slate-200 dark:placeholder-slate-400"
+				 id="search-input">
+		  <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
+		  <button class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300" id="close-search">
+			<span class="material-symbols-outlined">close</span>
+		  </button>
+		</div>
+		<div class="mt-2 hidden" id="search-suggestions">
+		  <!-- 搜索建议将动态填充 -->
+		</div>
+	  </div>
+	</header>
+
+	<!-- 主要内容区域 -->
+	<main class="flex-1 overflow-y-auto p-4" role="main" aria-label="活动列表" id="main-content">
+	  <!-- 骨架屏加载效果 -->
+	  <div class="space-y-4 hidden" id="skeleton-container">
+		<div class="rounded-xl bg-card-light p-4 shadow-card dark:bg-card-dark dark:shadow-card-dark">
+		  <div class="flex items-center gap-4">
+			<div class="h-14 w-14 rounded-full skeleton"></div>
+			<div class="flex-1 space-y-2">
+			  <div class="h-5 w-3/4 skeleton"></div>
+			  <div class="h-4 w-full skeleton"></div>
+			</div>
+		  </div>
+		</div>
+		<!-- 重复4个骨架屏 -->
+	  </div>
+	  
+	  <div class="space-y-4" id="activities-container">
+		<!-- 活动卡片将动态填充 -->
+	  </div>
+	  
+	  <!-- 加载更多指示器 -->
+	  <div class="mt-6 flex justify-center hidden" id="loading-more">
+		<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+		  <div class="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+		  <span class="text-sm">加载更多...</span>
+		</div>
+	  </div>
+	  
+	  <!-- 空状态 -->
+	  <div class="mt-12 hidden flex-col items-center justify-center text-center" id="empty-state">
+		<div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+		  <span class="material-symbols-outlined text-2xl text-slate-400">search_off</span>
+		</div>
+		<h3 class="mb-2 text-lg font-semibold text-slate-700 dark:text-slate-300">未找到相关社群</h3>
+		<p class="text-sm text-slate-500 dark:text-slate-400">尝试调整搜索条件或位置设置</p>
+	  </div>
+	</main>
+
+	<!-- 底部导航栏 -->
+	<nav class="sticky bottom-0 border-t border-slate-200 bg-background-light/95 pb-4 pt-3 backdrop-blur-sm dark:border-slate-800 dark:bg-background-dark/95" aria-label="主导航">
+	  <div class="flex justify-around">
+		<a class="flex flex-col items-center gap-1 text-primary transition-all" href="001首页.html" aria-current="page">
+		  <span class="material-symbols-outlined !text-2xl rounded-full bg-primary/10 p-1.5 transition-all" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+		  <span class="text-xs font-bold">群聊</span>
+		</a>
+		<a class="flex flex-col items-center gap-1 text-slate-500 transition-all hover:text-primary dark:text-slate-400 dark:hover:text-primary" href="002社区.html">
+		  <span class="material-symbols-outlined !text-2xl rounded-full p-1.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800">public</span>
+		  <span class="text-xs font-medium">社区</span>
+		</a>
+		<a class="flex flex-col items-center gap-1 text-slate-500 transition-all hover:text-primary dark:text-slate-400 dark:hover:text-primary" href="003动态.html">
+		  <span class="relative">
+			<span class="material-symbols-outlined !text-2xl rounded-full p-1.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800">explore</span>
+			<span class="absolute -right-0.5 -top-0.5 block h-2.5 w-2.5 rounded-full bg-red-500" aria-label="有新动态"></span>
+		  </span>
+		  <span class="text-xs font-medium">动态</span>
+		</a>
+		<a class="flex flex-col items-center gap-1 text-slate-500 transition-all hover:text-primary dark:text-slate-400 dark:hover:text-primary" href="004我的-个人.html">
+		  <span class="material-symbols-outlined !text-2xl rounded-full p-1.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800">person</span>
+		  <span class="text-xs font-medium">我的</span>
+		</a>
+	  </div>
+	</nav>
+  </div>
+
+  <!-- 位置选择模态框 -->
+  <div id="location-modal" class="fixed inset-0 z-50 flex items-end justify-center p-4 hidden sm:items-center sm:p-0">
+	<div class="fixed inset-0 bg-black/50 transition-opacity" aria-hidden="true"></div>
+	<div class="relative w-full max-w-md rounded-t-2xl bg-white shadow-xl dark:bg-slate-800 sm:rounded-2xl">
+	  <div class="p-6">
+		<div class="flex items-center justify-between mb-4">
+		  <h3 class="text-lg font-bold text-slate-900 dark:text-white">选择位置</h3>
+		  <button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" id="close-location-modal">
+			<span class="material-symbols-outlined">close</span>
+		  </button>
+		</div>
+		<div class="space-y-3">
+		  <!-- 地图找社群 -->
+		  <button class="flex w-full items-center gap-3 rounded-lg bg-slate-100 p-3 text-left transition-all hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600" id="map-find-group">
+			<span class="material-symbols-outlined text-primary">map</span>
+			<div>
+			  <p class="font-medium text-slate-900 dark:text-white">地图找社群</p>
+			  <p class="text-sm text-slate-500 dark:text-slate-400">在地图上查看附近的社群</p>
+			</div>
+		  </button>
+		  
+		  <!-- 刷新当前位置 -->
+		  <button class="flex w-full items-center gap-3 rounded-lg bg-slate-100 p-3 text-left transition-all hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600" id="refresh-location">
+			<span class="material-symbols-outlined text-primary">refresh</span>
+			<div>
+			  <p class="font-medium text-slate-900 dark:text-white">刷新当前位置</p>
+			  <p class="text-sm text-slate-500 dark:text-slate-400">获取更精确的位置信息</p>
+			</div>
+		  </button>
+		  
+		  <!-- 匹配的位置信息 -->
+		  <div class="border-t border-slate-200 pt-3 dark:border-slate-700 hidden" id="matched-locations">
+			<h4 class="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">附近位置</h4>
+			<div class="space-y-2" id="location-list">
+			  <!-- 位置选项将动态填充 -->
+			</div>
+		  </div>
+		</div>
+	  </div>
+	</div>
+  </div>
+
+  <script>
+	// 页面加载完成后执行
+	document.addEventListener('DOMContentLoaded', function() {
+	  // 初始化应用
+	  initApp();
+	  
+	  // 模拟数据加载
+	  simulateDataLoading();
+	});
+	
+	function initApp() {
+	  // 地图找社群功能
+	  const mapFindGroupButton = document.getElementById('map-find-group');
+	  if (mapFindGroupButton) {
+		mapFindGroupButton.addEventListener('click', function() {
+		  window.location.href = '001首页-进入地图.html';
+		});
+	  }
+	  // 搜索功能
+	  const searchButton = document.getElementById('search-button');
+	  const searchContainer = document.getElementById('search-container');
+	  const closeSearch = document.getElementById('close-search');
+	  const searchInput = document.getElementById('search-input');
+	  
+	  searchButton.addEventListener('click', function() {
+		searchContainer.classList.toggle('hidden');
+		if (!searchContainer.classList.contains('hidden')) {
+		  searchInput.focus();
+		}
+	  });
+	  
+	  closeSearch.addEventListener('click', function() {
+		searchContainer.classList.add('hidden');
+		searchInput.value = '';
+		hideSearchSuggestions();
+	  });
+	  
+	  // 实时搜索
+	  searchInput.addEventListener('input', function(e) {
+		const query = e.target.value.trim();
+		if (query.length > 0) {
+		  showSearchSuggestions(query);
+		} else {
+		  hideSearchSuggestions();
+		}
+	  });
+	  
+	  // 位置选择
+	  const locationButton = document.getElementById('location-button');
+	  const locationModal = document.getElementById('location-modal');
+	  const closeLocationModal = document.getElementById('close-location-modal');
+	  
+	  locationButton.addEventListener('click', function() {
+		locationModal.classList.remove('hidden');
+		document.body.style.overflow = 'hidden';
+	  });
+	  
+	  closeLocationModal.addEventListener('click', function() {
+		locationModal.classList.add('hidden');
+		document.body.style.overflow = '';
+	  });
+	  
+	  // 点击模态框外部关闭
+	  locationModal.addEventListener('click', function(e) {
+		if (e.target === locationModal) {
+		  locationModal.classList.add('hidden');
+		  document.body.style.overflow = '';
+		}
+	  });
+	  
+
+	  
+	  // 刷新当前位置功能
+	  const refreshLocationButton = document.getElementById('refresh-location');
+	  refreshLocationButton.addEventListener('click', function() {
+		// 显示加载状态
+		refreshLocationButton.disabled = true;
+		refreshLocationButton.innerHTML = `
+		  <span class="material-symbols-outlined text-primary animate-spin">refresh</span>
+		  <div>
+			<p class="font-medium text-slate-900 dark:text-white">正在刷新位置...</p>
+			<p class="text-sm text-slate-500 dark:text-slate-400">获取更精确的位置信息</p>
+		  </div>
+		`;
+		
+		// 模拟位置刷新
+		setTimeout(() => {
+		  // 恢复按钮状态
+		  refreshLocationButton.disabled = false;
+		  refreshLocationButton.innerHTML = `
+			<span class="material-symbols-outlined text-primary">refresh</span>
+			<div>
+			  <p class="font-medium text-slate-900 dark:text-white">刷新当前位置</p>
+			  <p class="text-sm text-slate-500 dark:text-slate-400">获取更精确的位置信息</p>
+			</div>
+		  `;
+		  
+		  // 显示匹配的位置信息
+		  showMatchedLocations();
+		}, 1500);
+	  });
+	  
+	  // 下拉刷新功能
+	  let startY = 0;
+	  const mainContent = document.getElementById('main-content');
+	  
+	  mainContent.addEventListener('touchstart', function(e) {
+		if (mainContent.scrollTop === 0) {
+		  startY = e.touches[0].pageY;
+		}
+	  });
+	  
+	  mainContent.addEventListener('touchmove', function(e) {
+		if (mainContent.scrollTop === 0) {
+		  const y = e.touches[0].pageY;
+		  const diff = y - startY;
+		  if (diff > 0) {
+			e.preventDefault();
+		  }
+		}
+	  });
+	  
+	  // 无限滚动
+	  let isLoading = false;
+	  mainContent.addEventListener('scroll', function() {
+		const { scrollTop, scrollHeight, clientHeight } = mainContent;
+		if (scrollTop + clientHeight >= scrollHeight - 100 && !isLoading) {
+		  loadMoreActivities();
+		}
+	  });
+	}
+	
+	function simulateDataLoading() {
+	  // 显示骨架屏
+	  const skeletonContainer = document.getElementById('skeleton-container');
+	  skeletonContainer.classList.remove('hidden');
+	  
+	  // 模拟网络延迟
+	  setTimeout(() => {
+		skeletonContainer.classList.add('hidden');
+		loadInitialActivities();
+	  }, 1500);
+	}
+	
+	function loadInitialActivities() {
+	  const activitiesContainer = document.getElementById('activities-container');
+	  
+	  // 这里应该是从API获取数据，这里使用模拟数据
+	  const activities = [
+		{
+		  id: 1,
+		  title: "科技爱好者",
+		  members: "12人在线",
+		  distance: "1.2公里",
+		  hotLevel: 3,
+		  avatar: "https://images.unsplash.com/photo-1535223289827-42f1e9919769?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80",
+		  isOwnerOnline: false,
+		  newMessages: 3
+		},
+		{
+		  id: 2,
+		  title: "读书爱好者",
+		  members: "8人在线",
+		  distance: "2.5公里",
+		  hotLevel: 2,
+		  avatar: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80",
+		  isOwnerOnline: true,
+		  newMessages: 0
+		},
+		{
+		  id: 3,
+		  title: "健身达人",
+		  members: "15人在线",
+		  distance: "3.1公里",
+		  hotLevel: 4,
+		  avatar: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80",
+		  isOwnerOnline: false,
+		  newMessages: 12
+		},
+		{
+		  id: 4,
+		  title: "美食家联盟",
+		  members: "5人在线",
+		  distance: "0.8公里",
+		  hotLevel: 2,
+		  avatar: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80",
+		  isOwnerOnline: true,
+		  newMessages: 0
+		},
+		{
+		  id: 5,
+		  title: "电影迷",
+		  members: "20人在线",
+		  distance: "4.7公里",
+		  hotLevel: 5,
+		  avatar: "https://images.unsplash.com/photo-1489599809519-e0c5c4d5c0b9?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80",
+		  isOwnerOnline: false,
+		  newMessages: 1,
+		  isGroup: true
+		}
+	  ];
+	  
+	  activities.forEach(activity => {
+		const activityElement = createActivityCard(activity);
+		activitiesContainer.appendChild(activityElement);
+	  });
+	}
+	
+	function createActivityCard(activity) {
+	  const card = document.createElement('div');
+	  card.className = `activity-card group cursor-pointer rounded-xl bg-card-light p-4 shadow-card transition-all hover:shadow-lg dark:bg-card-dark dark:shadow-card-dark fade-in`;
+	  card.setAttribute('role', 'article');
+	  card.setAttribute('aria-labelledby', `activity-${activity.id}-title`);
+	  
+	  // 生成热度星星
+	  let starsHtml = '';
+	  for (let i = 0; i < 5; i++) {
+		const fill = i < activity.hotLevel ? "style='font-variation-settings: \"FILL\" 1'" : "";
+		starsHtml += `<span class="material-symbols-outlined !text-base !leading-none" ${fill}>local_fire_department</span>`;
+	  }
+	  
+	  card.innerHTML = `
+		<div class="flex items-center gap-4">
+		  <div class="relative h-14 w-14 flex-shrink-0">
+			<div class="h-14 w-14 rounded-full bg-cover bg-center ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all" 
+				 style="background-image: url('${activity.avatar}')"
+				 role="img" 
+				 aria-label="${activity.title}群组头像"
+				 loading="lazy"></div>
+			${activity.isOwnerOnline ? '<span class="absolute -right-0.5 -top-0.5 block h-4 w-4 rounded-full bg-red-500 ring-2 ring-card-light dark:ring-card-dark" aria-label="群主在线"></span>' : ''}
+			${activity.isGroup ? '<div class="group-badge" aria-label="小组活动">小组</div>' : ''}
+		  </div>
+		  <div class="flex-1">
+			<div class="flex items-center justify-between">
+			  <p class="font-bold text-slate-900 dark:text-white" id="activity-${activity.id}-title">${activity.title}</p>
+			  ${activity.newMessages > 0 ? `<span class="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">${activity.newMessages}</span>` : ''}
+			</div>
+			<div class="mt-1 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+			  <span class="flex items-center gap-1">
+				<span class="material-symbols-outlined !text-sm">location_on</span>
+				<span>${activity.distance}</span>
+			  </span>
+			  <span class="text-slate-300 dark:text-slate-600">·</span>
+			  <span class="flex items-center gap-1">
+				<span class="material-symbols-outlined !text-sm">group</span>
+				<span>${activity.members}</span>
+			  </span>
+			  <span class="text-slate-300 dark:text-slate-600">·</span>
+			  <div class="flex items-center gap-0.5 text-orange-400">
+				${starsHtml}
+			  </div>
+			</div>
+			<span class="sr-only">距离${activity.distance}，${activity.members}，热门程度${activity.hotLevel}星${activity.isOwnerOnline ? '，群主在线' : ''}${activity.isGroup ? '，小组活动' : ''}</span>
+		  </div>
+		</div>
+	  `;
+	  
+	  // 添加点击事件
+	  card.addEventListener('click', function() {
+		// 跳转到对应的群组页面
+		if (activity.isGroup) {
+		  window.location.href = '001首页-进入聊天（小组）.html';
+		} else {
+		  window.location.href = '001首页-进入聊天.html';
+		}
+	  });
+	  
+	  // 添加键盘支持
+	  card.addEventListener('keydown', function(e) {
+		if (e.key === 'Enter' || e.key === ' ') {
+		  e.preventDefault();
+		  card.click();
+		}
+	  });
+	  
+	  card.setAttribute('tabindex', '0');
+	  
+	  return card;
+	}
+	
+	function loadMoreActivities() {
+	  const loadingMore = document.getElementById('loading-more');
+	  loadingMore.classList.remove('hidden');
+	  isLoading = true;
+	  
+	  // 模拟网络延迟
+	  setTimeout(() => {
+		// 在实际应用中，这里会从API加载更多数据
+		loadingMore.classList.add('hidden');
+		isLoading = false;
+		
+		// 如果没有更多数据，可以显示提示或隐藏加载更多指示器
+	  }, 1500);
+	}
+	
+	function showSearchSuggestions(query) {
+	  const suggestionsContainer = document.getElementById('search-suggestions');
+	  suggestionsContainer.classList.remove('hidden');
+	  
+	  // 模拟搜索建议
+	  const suggestions = [
+		`搜索 "${query}"`,
+		`${query} 相关社群`,
+		`${query} 活动`,
+		`${query} 小组`
+	  ];
+	  
+	  suggestionsContainer.innerHTML = suggestions.map(suggestion => `
+		<button class="flex w-full items-center gap-3 rounded-lg p-3 text-left transition-all hover:bg-slate-100 dark:hover:bg-slate-700">
+		  <span class="material-symbols-outlined text-slate-400">search</span>
+		  <span class="text-sm text-slate-700 dark:text-slate-300">${suggestion}</span>
+		</button>
+	  `).join('');
+	}
+	
+	function hideSearchSuggestions() {
+	  const suggestionsContainer = document.getElementById('search-suggestions');
+	  suggestionsContainer.classList.add('hidden');
+	}
+	
+	function showMatchedLocations() {
+	  const matchedLocations = document.getElementById('matched-locations');
+	  const locationList = document.getElementById('location-list');
+	  
+	  // 模拟匹配的位置数据
+	  const locations = [
+		{
+		  name: "北京市海淀区中关村大街1号",
+		  distance: "0.2公里",
+		  accuracy: "高精度"
+		},
+		{
+		  name: "北京市海淀区中关村科技园区",
+		  distance: "0.5公里",
+		  accuracy: "中精度"
+		},
+		{
+		  name: "北京市海淀区中关村南大街",
+		  distance: "0.8公里",
+		  accuracy: "中精度"
+		}
+	  ];
+	  
+	  // 清空现有内容
+	  locationList.innerHTML = '';
+	  
+	  // 填充位置数据
+	  locations.forEach(location => {
+		const locationElement = document.createElement('button');
+		locationElement.className = 'flex w-full items-center gap-3 rounded-lg p-2 text-left transition-all hover:bg-slate-100 dark:hover:bg-slate-700';
+		locationElement.innerHTML = `
+		  <span class="material-symbols-outlined text-slate-400">location_on</span>
+		  <div class="flex-1">
+			<p class="text-sm font-medium text-slate-700 dark:text-slate-300">${location.name}</p>
+			<p class="text-xs text-slate-500 dark:text-slate-400">距离 ${location.distance} · ${location.accuracy}</p>
+		  </div>
+		`;
+		
+		locationElement.addEventListener('click', function() {
+		  // 更新当前位置显示
+		  document.getElementById('current-location').textContent = location.name;
+		  // 关闭模态框
+		  document.getElementById('location-modal').classList.add('hidden');
+		  document.body.style.overflow = '';
+		});
+		
+		locationList.appendChild(locationElement);
+	  });
+	  
+	  // 显示匹配的位置区域
+	  matchedLocations.classList.remove('hidden');
+	}
+  </script>
+</body>
+</html>
